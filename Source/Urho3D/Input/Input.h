@@ -131,9 +131,10 @@ struct JoystickState
 /// Screen joystick
 struct ScreenJoystick
 {
-    BorderImage* innerBorderImage_;
-    IntVector2 buttonOffset_;
-    float      innerRadius_;
+    BorderImage *innerBorderImage_;
+    IntVector2  buttonOffset_;
+    int         arrayIdx_;
+    float       innerRadius_;
 };
 #ifdef __EMSCRIPTEN__
 class EmscriptenInput;

@@ -1059,6 +1059,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
 
                 screenJoystick.buttonOffset_ = (outerSize - innerSize)/2;
                 screenJoystick.innerRadius_ = innerSize.Length() * maxRadiusScaler;
+                screenJoystick.arrayIdx_ = ToInt(name.CString() + 4);
 
                 // write id and sub to events
                 screenJoystick.innerBorderImage_->SetEnabled(true);
@@ -2623,11 +2624,12 @@ void Input::HandleScreenJoystickDrag(StringHash eventType, VariantMap& eventData
 
     SDL_JoystickID joystickID = variant.GetInt();
     JoystickState* joystickState = GetJoystick(joystickID);
+    int arrayIdx = screenJoystickList_[listIdx].arrayIdx_;
 
-    if (joystickState && (listIdx*2) + 1 < joystickState->axes_.Size())
+    if (joystickState && arrayIdx*2 + 1 < joystickState->axes_.Size())
     {
-        joystickState->axes_[(listIdx*2)]   = inputValue.x_;
-        joystickState->axes_[(listIdx*2)+1] = inputValue.y_;
+        joystickState->axes_[arrayIdx*2]   = inputValue.x_;
+        joystickState->axes_[arrayIdx*2+1] = inputValue.y_;
     }
 }
 

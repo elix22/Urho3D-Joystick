@@ -58,7 +58,7 @@
         <attribute name="Pressed Image Offset" value="0 0" />
     </element>
     <element type="BorderImage">
-        <attribute name="Name" value="AxisLeft" />
+        <attribute name="Name" value="Axis0" />
         <attribute name="Position" value="50 -50" />
         <attribute name="Size" value="110 110" />
         <attribute name="Color" value="0.6 0.6 0.6 1" />
@@ -80,7 +80,7 @@
         </element>
     </element>
     <element type="BorderImage">
-        <attribute name="Name" value="AxisRight" />
+        <attribute name="Name" value="Axis1" />
         <attribute name="Position" value="-100 -50" />
         <attribute name="Size" value="110 110" />
         <attribute name="Color" value="0.6 0.6 0.6 1" />
