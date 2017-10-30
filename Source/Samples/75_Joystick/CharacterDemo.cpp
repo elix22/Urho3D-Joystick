@@ -92,8 +92,8 @@ void CharacterDemo::Start()
 
     SubscribeToEvents();
 
-    //Sample::InitMouseMode(MM_RELATIVE);
-    Sample::InitMouseMode(MM_FREE);
+    Sample::InitMouseMode(MM_RELATIVE);
+    //Sample::InitMouseMode(MM_FREE);
 }
 
 void CharacterDemo::CreateGameController()
