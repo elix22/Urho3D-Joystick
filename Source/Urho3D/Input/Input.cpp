@@ -63,6 +63,7 @@ const StringHash VAR_BUTTON_KEY_BINDING("VAR_BUTTON_KEY_BINDING");
 const StringHash VAR_BUTTON_MOUSE_BUTTON_BINDING("VAR_BUTTON_MOUSE_BUTTON_BINDING");
 const StringHash VAR_LAST_KEYSYM("VAR_LAST_KEYSYM");
 const StringHash VAR_SCREEN_JOYSTICK_ID("VAR_SCREEN_JOYSTICK_ID");
+const StringHash VAR_JOYSTICK_LISTIDX("VAR_JOYSTICK_LISTIDX");
 
 const unsigned TOUCHID_MAX = 32;
 
@@ -1061,8 +1062,9 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                 screenJoystick.innerRadius_ = innerSize.Length() * maxRadiusScaler;
                 screenJoystick.arrayIdx_ = ToInt(name.CString() + 4);
 
-                // write id and sub to events
+                // write vars and sub to events
                 screenJoystick.innerBorderImage_->SetEnabled(true);
+                screenJoystick.innerBorderImage_->SetVar(VAR_JOYSTICK_LISTIDX, screenJoystickList_.Size() - 1);
                 screenJoystick.innerBorderImage_->SetVar(VAR_SCREEN_JOYSTICK_ID, joystickID);
 
                 SubscribeToEvent(screenJoystick.innerBorderImage_, E_DRAGBEGIN, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
@@ -2571,11 +2573,15 @@ void Input::HandleScreenJoystickDrag(StringHash eventType, VariantMap& eventData
     int X = eventData[P_X].GetInt();
     int Y = eventData[P_Y].GetInt();
 
-    // find idx, exit if not found
-    unsigned listIdx = FindJoystickBorderImageIndex(borderImage);
+    // get stored vars
+    Variant var1 = borderImage->GetVar(VAR_SCREEN_JOYSTICK_ID);
+    Variant var2 = borderImage->GetVar(VAR_JOYSTICK_LISTIDX);
 
-    if (listIdx == M_MAX_UNSIGNED)
+    if (var1.IsEmpty() || var2.IsEmpty())
         return;
+
+    SDL_JoystickID joystickID = var1.GetInt();
+    unsigned listIdx = var2.GetUInt();
 
     const IntVector2 &buttonOffset = screenJoystickList_[listIdx].buttonOffset_;
     const Vector2 centerOffset((float)buttonOffset.x_, (float)buttonOffset.y_);
@@ -2618,11 +2624,6 @@ void Input::HandleScreenJoystickDrag(StringHash eventType, VariantMap& eventData
     }
 
     // write axis data
-    Variant variant = borderImage->GetVar(VAR_SCREEN_JOYSTICK_ID);
-    if (variant.IsEmpty())
-        return;
-
-    SDL_JoystickID joystickID = variant.GetInt();
     JoystickState* joystickState = GetJoystick(joystickID);
     int arrayIdx = screenJoystickList_[listIdx].arrayIdx_;
 
@@ -2631,22 +2632,6 @@ void Input::HandleScreenJoystickDrag(StringHash eventType, VariantMap& eventData
         joystickState->axes_[arrayIdx*2]   = inputValue.x_;
         joystickState->axes_[arrayIdx*2+1] = inputValue.y_;
     }
-}
-
-unsigned Input::FindJoystickBorderImageIndex(BorderImage *borderImage)
-{
-    unsigned listIdx = M_MAX_UNSIGNED;
-
-    for ( unsigned i = 0; i < screenJoystickList_.Size(); ++i )
-    {
-        if (screenJoystickList_[i].innerBorderImage_ == borderImage)
-        {
-            listIdx = i;
-            break;
-        }
-    }
-
-    return listIdx;
 }
 
 }

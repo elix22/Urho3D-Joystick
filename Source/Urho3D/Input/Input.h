@@ -371,7 +371,6 @@ private:
     /// Handle frame end event.
     void HandleEndFrame(StringHash eventType, VariantMap& eventData);
 #endif
-    unsigned FindJoystickBorderImageIndex(BorderImage *borderImage);
 
     /// Graphics subsystem.
     WeakPtr<Graphics> graphics_;
