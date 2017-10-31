@@ -91,14 +91,8 @@ void Character::FixedUpdate(float timeStep)
     // Velocity on the XZ plane
     Vector3 planeVelocity(velocity.x_, 0.0f, velocity.z_);
 
-    GameController* gameController = GetSubsystem<GameController>();
-    if (!gameController->IsValid())
-    {
-        return;
-    }
-
     // left stick
-    Variant lStick = controls_.extraData_[gameController->GetLeftStickName()];
+    Variant lStick = controls_.extraData_[VAR_AXIS_0];
 
     if (!lStick.IsEmpty())
     {
@@ -107,6 +101,7 @@ void Character::FixedUpdate(float timeStep)
         moveDir += Vector3::RIGHT * axisInput.x_;
     }
 
+    //**intentionally commented out**
     // Normalize move vector so that diagonal strafing is not faster
     //if (moveDir.LengthSquared() > 0.0f)
     //    moveDir.Normalize();

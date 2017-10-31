@@ -28,11 +28,6 @@
 using namespace Urho3D;
 //=============================================================================
 //=============================================================================
-const int BUTTON_A = (1<<0);
-const int BUTTON_B = (1<<1);
-const int BUTTON_X = (1<<2);
-const int BUTTON_Y = (1<<3);
-
 const float MOVE_FORCE = 0.8f;
 const float INAIR_MOVE_FORCE = 0.02f;
 const float BRAKE_FORCE = 0.2f;

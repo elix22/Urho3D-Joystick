@@ -28,8 +28,18 @@ using namespace Urho3D;
 
 namespace Urho3D
 {
-    class Controls;
+class Controls;
 }
+
+//=============================================================================
+//=============================================================================
+const StringHash VAR_AXIS_0("VAR_AXIS_0");
+const StringHash VAR_AXIS_1("VAR_AXIS_1");
+
+const int BUTTON_A = (1<<0);
+const int BUTTON_B = (1<<1);
+const int BUTTON_X = (1<<2);
+const int BUTTON_Y = (1<<3);
 
 //=============================================================================
 //=============================================================================
@@ -48,28 +58,10 @@ public:
     ~GameController();
 
     void UpdateControlInputs(Controls& controls);
-    bool IsValid() const { return joystickIndex_ != M_MAX_UNSIGNED; }
 
-    // stick names
-    const String& GetLeftStickName() const
-    {
-        return stickNames_[0];
-    }
-
-    const String& GetRightStickName() const
-    {
-        return stickNames_[1];
-    }
-
-    void SetMinTolerance(float minVal)
-    {
-        minTolerance_ = minVal;
-    }
-
-    float GetMinTolerance() const
-    {
-        return minTolerance_;
-    }
+    bool IsValid() const                { return joystickIndex_ != M_MAX_UNSIGNED; }
+    void SetMinTolerance(float minVal)  { minTolerance_ = minVal; }
+    float GetMinTolerance() const       { return minTolerance_; }
 
 protected:
     bool CreateController();
@@ -78,8 +70,6 @@ protected:
 
 protected:
     unsigned joystickIndex_;
-    Vector<String> stickNames_;
-
     float minTolerance_;
 };
 

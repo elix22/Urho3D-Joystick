@@ -308,7 +308,7 @@ void CharacterDemo::HandleUpdate(StringHash eventType, VariantMap& eventData)
             // **note** the buttons controls are handled in the character class update fn.
 
             // right stick - camera
-            Variant rStick = character_->controls_.extraData_[gameController->GetRightStickName()];
+            Variant rStick = character_->controls_.extraData_[VAR_AXIS_1];
 
             if (!rStick.IsEmpty())
             {

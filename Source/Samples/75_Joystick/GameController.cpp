@@ -44,30 +44,11 @@ GameController::GameController(Context* context)
     , minTolerance_(0.2f)
 
 {
-    stickNames_.Push("lftStick");
-    stickNames_.Push("rgtStick");
-
     CreateController();
 }
 
 GameController::~GameController()
 {
-}
-
-void GameController::RemoveScreenJoystick()
-{
-    Input* input = GetSubsystem<Input>();
-
-    for ( unsigned i = 0; i < input->GetNumJoysticks(); ++i )
-    {
-        JoystickState *joystick = input->GetJoystickByIndex(i);
-
-        if (joystick->screenJoystick_)
-        {
-            input->RemoveScreenJoystick(joystick->joystickID_);
-            break;
-        }
-    }
 }
 
 bool GameController::CreateController()
@@ -116,13 +97,28 @@ bool GameController::CreateController()
     }
     #endif
 
-
     return (joystickIndex_ != M_MAX_UNSIGNED);
+}
+
+void GameController::RemoveScreenJoystick()
+{
+    Input* input = GetSubsystem<Input>();
+
+    for ( unsigned i = 0; i < input->GetNumJoysticks(); ++i )
+    {
+        JoystickState *joystick = input->GetJoystickByIndex(i);
+
+        if (joystick->screenJoystick_)
+        {
+            input->RemoveScreenJoystick(joystick->joystickID_);
+            break;
+        }
+    }
 }
 
 void GameController::UpdateControlInputs(Controls& controls)
 {
-    // clear button
+    // clear buttons
     controls.buttons_ = 0;
 
     if (joystickIndex_ != M_MAX_UNSIGNED)
@@ -138,13 +134,14 @@ void GameController::UpdateControlInputs(Controls& controls)
             }
 
             // axis
-            for ( unsigned i = 0; i < maxAxisCnt; i += 2 )
+            const StringHash axisHashList[maxAxisCnt/2] = { VAR_AXIS_0, VAR_AXIS_1 };
+            for ( unsigned i = 0; i < joystick->GetNumAxes() && i < maxAxisCnt; i += 2 )
             {
                 Vector2 val(joystick->GetAxisPosition(i), joystick->GetAxisPosition(i+1));
 
                 ClampValues(val, minTolerance_);
 
-                controls.extraData_[stickNames_[i/2]] = val;
+                controls.extraData_[axisHashList[i/2]] = val;
             }
         }
     }
@@ -161,7 +158,7 @@ void GameController::ClampValues(Vector2 &vec, float minVal)
         vec.y_ = 0.0f;
     }
 
-    // diagonal pts between x and y axis results in magnitude > 1, normalize
+    // diagonal pts between x and y axis result in magnitude > 1, normalize
     if (vec.Length() > 1.0f)
     {
         vec.Normalize();
