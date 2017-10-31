@@ -2,11 +2,14 @@
 
 Description
 -----------------------------------------------------------------------------------
-Joystick example for Urho3D for PC and mobile.  
-Tested with Xbox controller and on Android x86 emulation device.
+Joystick example for PC and mobile.  
 
+Tested:
+* Xbox controller on PC
+* Android x86 emulation device
+* Android 4.1.2, API 16
 
-Screenshots
+Screenshot
 -----------------------------------------------------------------------------------
 ![alt tag](https://github.com/Lumak/Urho3D-Joystick/blob/master/screenshot/joystickscreen.png)
 
