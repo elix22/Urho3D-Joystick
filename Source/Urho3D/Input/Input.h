@@ -70,6 +70,14 @@ struct TouchState
     WeakPtr<UIElement> touchedElement_;
 };
 
+/// Screen joystick axis button
+struct ScreenJoystickAxis
+{
+    IntVector2  buttonOffset_;
+    unsigned    arrayIdx_;
+    float       innerRadius_;
+};
+
 /// %Input state for a joystick.
 struct JoystickState
 {
@@ -126,16 +134,10 @@ struct JoystickState
     PODVector<float> axes_;
     /// POV hat bits.
     PODVector<int> hats_;
+    /// Screen joystick axis buttons
+    PODVector<ScreenJoystickAxis> screenJoystickAxisList_;
 };
 
-/// Screen joystick
-struct ScreenJoystick
-{
-    BorderImage *innerBorderImage_;
-    IntVector2  buttonOffset_;
-    int         arrayIdx_;
-    float       innerRadius_;
-};
 #ifdef __EMSCRIPTEN__
 class EmscriptenInput;
 #endif
@@ -451,9 +453,6 @@ private:
     /// Flag indicating current pointer-lock status.
     bool emscriptenPointerLock_;
 #endif
-
-    /// Screen joystick 
-    PODVector<ScreenJoystick> screenJoystickList_;
 };
 
 }

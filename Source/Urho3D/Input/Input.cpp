@@ -63,7 +63,7 @@ const StringHash VAR_BUTTON_KEY_BINDING("VAR_BUTTON_KEY_BINDING");
 const StringHash VAR_BUTTON_MOUSE_BUTTON_BINDING("VAR_BUTTON_MOUSE_BUTTON_BINDING");
 const StringHash VAR_LAST_KEYSYM("VAR_LAST_KEYSYM");
 const StringHash VAR_SCREEN_JOYSTICK_ID("VAR_SCREEN_JOYSTICK_ID");
-const StringHash VAR_JOYSTICK_LISTIDX("VAR_JOYSTICK_LISTIDX");
+const StringHash VAR_SCREEN_JOYSTICK_AXIS_ID("VAR_SCREEN_JOYSTICK_AXIS_ID");
 
 const unsigned TOUCHID_MAX = 32;
 
@@ -1048,28 +1048,28 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
         {
             // each axis has x and y components, hence incr by 2
             numAxes += 2;
-            screenJoystickList_.Resize(screenJoystickList_.Size() + 1);
-            ScreenJoystick &screenJoystick = screenJoystickList_.At(screenJoystickList_.Size() - 1);
-            screenJoystick.innerBorderImage_ = element->GetChildDynamicCast<BorderImage>("InnerButton", true);
+            state.screenJoystickAxisList_.Resize(state.screenJoystickAxisList_.Size() + 1);
+            ScreenJoystickAxis &screenJoystick = state.screenJoystickAxisList_.At(state.screenJoystickAxisList_.Size() - 1);
+            BorderImage *innerBorderImage = element->GetChildDynamicCast<BorderImage>("InnerButton", true);
 
-            if (screenJoystick.innerBorderImage_)
+            if (innerBorderImage)
             {
                 const float maxRadiusScaler = 0.2f;
                 IntVector2 outerSize = element->GetSize();
-                IntVector2 innerSize = screenJoystick.innerBorderImage_->GetSize();
+                IntVector2 innerSize = innerBorderImage->GetSize();
 
                 screenJoystick.buttonOffset_ = (outerSize - innerSize)/2;
                 screenJoystick.innerRadius_ = innerSize.Length() * maxRadiusScaler;
-                screenJoystick.arrayIdx_ = ToInt(name.CString() + 4);
+                screenJoystick.arrayIdx_ = ToUInt(name.CString() + 4);
 
                 // write vars and sub to events
-                screenJoystick.innerBorderImage_->SetEnabled(true);
-                screenJoystick.innerBorderImage_->SetVar(VAR_JOYSTICK_LISTIDX, screenJoystickList_.Size() - 1);
-                screenJoystick.innerBorderImage_->SetVar(VAR_SCREEN_JOYSTICK_ID, joystickID);
+                innerBorderImage->SetEnabled(true);
+                innerBorderImage->SetVar(VAR_SCREEN_JOYSTICK_AXIS_ID, state.screenJoystickAxisList_.Size() - 1);
+                innerBorderImage->SetVar(VAR_SCREEN_JOYSTICK_ID, joystickID);
 
-                SubscribeToEvent(screenJoystick.innerBorderImage_, E_DRAGBEGIN, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
-                SubscribeToEvent(screenJoystick.innerBorderImage_, E_DRAGMOVE, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
-                SubscribeToEvent(screenJoystick.innerBorderImage_, E_DRAGEND, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
+                SubscribeToEvent(innerBorderImage, E_DRAGBEGIN, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
+                SubscribeToEvent(innerBorderImage, E_DRAGMOVE, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
+                SubscribeToEvent(innerBorderImage, E_DRAGEND, URHO3D_HANDLER(Input, HandleScreenJoystickDrag));
             }
         }
         else if (name.StartsWith("Hat"))
@@ -2573,64 +2573,66 @@ void Input::HandleScreenJoystickDrag(StringHash eventType, VariantMap& eventData
     int X = eventData[P_X].GetInt();
     int Y = eventData[P_Y].GetInt();
 
-    // get stored vars
+    // Get stored vars
     Variant var1 = borderImage->GetVar(VAR_SCREEN_JOYSTICK_ID);
-    Variant var2 = borderImage->GetVar(VAR_JOYSTICK_LISTIDX);
+    Variant var2 = borderImage->GetVar(VAR_SCREEN_JOYSTICK_AXIS_ID);
 
     if (var1.IsEmpty() || var2.IsEmpty())
         return;
 
     SDL_JoystickID joystickID = var1.GetInt();
-    unsigned listIdx = var2.GetUInt();
+    unsigned axisIdx = var2.GetUInt();
+    JoystickState* joystickState = GetJoystick(joystickID);
 
-    const IntVector2 &buttonOffset = screenJoystickList_[listIdx].buttonOffset_;
-    const Vector2 centerOffset((float)buttonOffset.x_, (float)buttonOffset.y_);
-    const float innerRadius = screenJoystickList_[listIdx].innerRadius_;
-    Vector2 inputValue;
-
-    if (eventType == E_DRAGBEGIN)
+    if (joystickState)
     {
-        IntVector2 p = borderImage->GetPosition();
-        borderImage->SetVar("DELTA", IntVector2(p.x_ - X, p.y_ - Y));
-    }
-    else if (eventType == E_DRAGMOVE)
-    {
-        IntVector2 d = borderImage->GetVar("DELTA").GetIntVector2();
-        int iX = X + d.x_; 
-        int iY = Y + d.y_;
+        const IntVector2 &buttonOffset = joystickState->screenJoystickAxisList_[axisIdx].buttonOffset_;
+        const Vector2 centerOffset(buttonOffset);
+        const float innerRadius = joystickState->screenJoystickAxisList_[axisIdx].innerRadius_;
+        Vector2 inputValue;
 
-        IntVector2 iPos(iX, iY);
-        Vector2 fPos = Vector2(iPos);
-        Vector2 seg = fPos - centerOffset;
-
-        if (seg.LengthSquared() > M_EPSILON)
+        if (eventType == E_DRAGBEGIN)
         {
-            float segLen = seg.Length();
-            float dist = Min(segLen, innerRadius);
-            Vector2 constrainedPos = centerOffset + seg.Normalized() * dist;
-            iPos = IntVector2((int)constrainedPos.x_, (int)constrainedPos.y_);
-            seg = constrainedPos - centerOffset;
+            IntVector2 p = borderImage->GetPosition();
+            borderImage->SetVar("DELTA", IntVector2(p.x_ - X, p.y_ - Y));
+        }
+        else if (eventType == E_DRAGMOVE)
+        {
+            IntVector2 d = borderImage->GetVar("DELTA").GetIntVector2();
+            int iX = X + d.x_; 
+            int iY = Y + d.y_;
+
+            IntVector2 iPos(iX, iY);
+            Vector2 fPos = Vector2(iPos);
+            Vector2 seg = fPos - centerOffset;
+
+            if (seg.LengthSquared() > M_EPSILON)
+            {
+                float dist = Min(seg.Length(), innerRadius);
+                Vector2 constrainedPos = centerOffset + seg.Normalized() * dist;
+                iPos = IntVector2((int)constrainedPos.x_, (int)constrainedPos.y_);
+                seg = constrainedPos - centerOffset;
+            }
+
+            borderImage->SetPosition(iPos);
+
+            inputValue.x_ = (seg.x_ / innerRadius);
+            inputValue.y_ = (seg.y_ / innerRadius);
+        }
+        else if (eventType == E_DRAGEND)
+        {
+            borderImage->SetPosition(buttonOffset);
+            inputValue = Vector2::ZERO;
         }
 
-        borderImage->SetPosition(iPos);
+        // Write axis data
+        unsigned arrayIdx = joystickState->screenJoystickAxisList_[axisIdx].arrayIdx_;
 
-        inputValue.x_ = (seg.x_ / innerRadius);
-        inputValue.y_ = (seg.y_ / innerRadius);
-    }
-    else if (eventType == E_DRAGEND)
-    {
-        borderImage->SetPosition(buttonOffset);
-        inputValue = Vector2::ZERO;
-    }
-
-    // write axis data
-    JoystickState* joystickState = GetJoystick(joystickID);
-    int arrayIdx = screenJoystickList_[listIdx].arrayIdx_;
-
-    if (joystickState && arrayIdx*2 + 1 < joystickState->axes_.Size())
-    {
-        joystickState->axes_[arrayIdx*2]   = inputValue.x_;
-        joystickState->axes_[arrayIdx*2+1] = inputValue.y_;
+        if (arrayIdx*2 + 1 < joystickState->axes_.Size())
+        {
+            joystickState->axes_[arrayIdx*2]   = inputValue.x_;
+            joystickState->axes_[arrayIdx*2+1] = inputValue.y_;
+        }
     }
 }
 
