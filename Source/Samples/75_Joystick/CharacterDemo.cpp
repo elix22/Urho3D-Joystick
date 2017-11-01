@@ -300,28 +300,24 @@ void CharacterDemo::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
     if (character_)
     {
-        // get the input from the controller
-        if (gameController->IsValid())
+        gameController->UpdateControlInputs(character_->controls_);
+
+        // **note** the buttons controls are handled in the character class update fn.
+
+        // right stick - camera
+        Variant rStick = character_->controls_.extraData_[VAR_AXIS_1];
+
+        if (!rStick.IsEmpty())
         {
-            gameController->UpdateControlInputs(character_->controls_);
-
-            // **note** the buttons controls are handled in the character class update fn.
-
-            // right stick - camera
-            Variant rStick = character_->controls_.extraData_[VAR_AXIS_1];
-
-            if (!rStick.IsEmpty())
-            {
-                Vector2 axisInput = rStick.GetVector2();
-                character_->controls_.yaw_ += axisInput.x_ * YAW_SENSITIVITY;
-                character_->controls_.pitch_ += axisInput.y_ * YAW_SENSITIVITY;
-            }
-
-            // Limit pitch
-            character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
-            // Set rotation already here so that it's updated every rendering frame instead of every physics frame
-            character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
+            Vector2 axisInput = rStick.GetVector2();
+            character_->controls_.yaw_ += axisInput.x_ * YAW_SENSITIVITY;
+            character_->controls_.pitch_ += axisInput.y_ * YAW_SENSITIVITY;
         }
+
+        // Limit pitch
+        character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
+        // Set rotation already here so that it's updated every rendering frame instead of every physics frame
+        character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
     }
 }
 

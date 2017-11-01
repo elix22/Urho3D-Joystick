@@ -4,10 +4,11 @@ Description
 -----------------------------------------------------------------------------------
 Joystick example for PC and mobile.  
 
-Tested:
+Devices tested:
 * Xbox controller on PC
 * Android x86 emulation device
-* Android 4.1.2, API 16
+* Mobile phone, Android 4.1.2, API 16
+
 
 Screenshot
 -----------------------------------------------------------------------------------
